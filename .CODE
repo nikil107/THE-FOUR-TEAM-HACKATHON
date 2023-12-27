@@ -1,0 +1,202 @@
+import time
+import speech_recognition as sr
+import pyttsx3
+from random import randint
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.feature_extraction.text import CountVectorizer
+
+class FeedbackClassifier:
+    def __init__(self):
+        self.vectorizer = CountVectorizer()
+        self.model = MultinomialNB()
+
+    def train_model(self, feedback_data):
+        X = self.vectorizer.fit_transform(feedback_data['feedback'])
+        y = feedback_data['sentiment']
+        self.model.fit(X, y)
+
+    def classify_feedback(self, feedback):
+        feedback_vector = self.vectorizer.transform([feedback])
+        sentiment = self.model.predict(feedback_vector)[0]
+        return sentiment
+
+class Chatbot:
+    def __init__(self):
+        try:
+            # Attempt to initialize pyttsx3 with 'sapi5' driver
+            self.speech_engine = pyttsx3.init(driverName='sapi5')
+            self.speech_engine.setProperty('rate', 150)
+        except Exception as e:
+            print(f"Error initializing pyttsx3: {e}")
+            self.speech_engine = None
+
+        if not self.speech_engine:
+            print("Speech engine initialization failed. Speech functionality disabled.")
+
+    def speak(self, text):
+        if self.speech_engine:
+            self.speech_engine.say(text)
+            self.speech_engine.runAndWait()
+        else:
+            print("Speech engine not initialized. Unable to speak.")
+
+    def listen(self):
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            self.speak("Melbourne Airport Virtual Assistant: (Speak now)")
+            audio_data = recognizer.listen(source, timeout=5)
+
+        try:
+            user_input = recognizer.recognize_google(audio_data, language='en')  # Assume English for simplicity
+            print(f"Passenger: {user_input}")
+            return user_input
+
+        except sr.UnknownValueError:
+            print("Passenger: (No speech detected)")
+            return ""
+
+    def assist_passenger(self):
+        self.speak("Melbourne Airport Virtual Assistant: Please choose an option:")
+        self.speak("1. Get Feedback")
+        self.speak("2. Chatbot")
+        self.speak("3. Assist Passenger")
+        self.speak("4. AeroFlowAutomation")
+        self.speak("5. Baggage System")
+        self.speak("6. Security System")
+        self.speak("7. Passenger System")
+
+        user_choice = input("Passenger: ")
+
+        if user_choice == '1':
+            feedback = self.get_feedback()
+            # Process feedback as needed
+
+        elif user_choice == '2':
+            # Implement chatbot interaction
+            self.assist_passenger()  # You can extend this part based on your chatbot logic
+
+        elif user_choice == '3':
+            self.assist_passenger()
+
+        elif user_choice == '4':
+            # Integrate AeroFlowAutomation
+            self.ai_assist()
+
+        elif user_choice == '5':
+            # Placeholder: Call Baggage System
+            baggage_system = BaggageSystem()
+            baggage_system.process_baggage()
+
+        elif user_choice == '6':
+            # Placeholder: Call Security System
+            security_system = SecuritySystem()
+            security_system.perform_security_checks()
+
+        elif user_choice == '7':
+            # Placeholder: Call Passenger System
+            passenger_system = PassengerSystem()
+            passenger_system.manage_passenger_flow()
+
+        else:
+            self.speak("Melbourne Airport Virtual Assistant: Invalid choice. Please choose a valid option.")
+
+    def assist_with_input(self, user_input):
+        # Placeholder for processing user input
+        print("Processing user input:", user_input)
+
+        # Placeholder: Provide a response
+        response_text = "Sure, I understand. How can I assist you further?"
+        self.speak(response_text)
+
+    def get_feedback(self):
+        # Simulate getting feedback from the user
+        self.speak("Melbourne Airport Virtual Assistant: Please provide feedback (positive/negative):")
+        feedback = input("Passenger: ")
+
+        return feedback
+
+class NLPChatbot:
+    def __init__(self):
+        self.chatbot = Chatbot()
+        self.feedback_classifier = FeedbackClassifier()
+
+    def train_feedback_classifier(self, feedback_data):
+        self.feedback_classifier.train_model(feedback_data)
+
+    def assist_passenger(self):
+        self.chatbot.assist_passenger()
+
+        # Get feedback from the user
+        feedback = self.chatbot.get_feedback()
+
+        # Train the feedback classifier (ensure vocabulary is fitted)
+        self.train_feedback_classifier(feedback_data)  # You need to provide feedback_data
+
+        # Classify feedback
+        sentiment = self.feedback_classifier.classify_feedback(feedback)
+
+        # Provide a response based on sentiment
+        if sentiment == 'positive':
+            self.chatbot.speak("Melbourne Airport Virtual Assistant: Thank you for your positive feedback! We're glad we could assist you.")
+        elif sentiment == 'negative':
+            self.chatbot.speak("Melbourne Airport Virtual Assistant: We apologize for any inconvenience. Please let us know how we can improve.")
+
+class AeroFlowAutomation:
+    def __init__(self):
+        # Initialize necessary components and connections here
+        self.chatbot = NLPChatbot()
+
+    def automate_routine_tasks(self, task):
+        # Simulate routine task automation
+        print(f"Automating {task}...")
+        time.sleep(randint(1, 5))  # Simulate processing time
+        print(f"{task} automated successfully!")
+
+    def ai_assist(self):
+        # Integrate NLP chatbot for passenger assistance
+        self.chatbot.assist_passenger()
+
+    def run(self):
+        # Simulate various routine tasks at Melbourne Airport
+        tasks = ["Baggage Handling", "Security Checks", "Passenger Flow"]
+        for task in tasks:
+            self.automate_routine_tasks(task)
+
+            # Get feedback and respond
+            self.ai_assist()
+
+# Placeholder classes for necessary components (replace with actual implementations)
+
+class SecuritySystem:
+    def __init__(self):
+        # Initialize security system components and connections
+        pass
+
+    def perform_security_checks(self):
+        # Placeholder code for performing security checks
+        time.sleep(randint(1, 5))
+        print("Security checks completed.")
+
+class PassengerSystem:
+    def __init__(self):
+        # Initialize passenger system components and connections
+        pass
+
+    def manage_passenger_flow(self):
+        # Placeholder code for managing passenger flow
+        time.sleep(randint(1, 5))
+        print("Passenger flow managed.")
+
+if __name__ == "__main__":
+    # Attempt to import pyaudio and handle the exception
+    try:
+        import pyaudio
+    except ImportError:
+        print("Error: PyAudio not installed. Please install PyAudio to enable speech recognition.")
+        print("You can install it using: pip install pyaudio")
+        exit()
+
+    # Instantiate AeroFlowAutomation and run the automation
+    aero_flow = AeroFlowAutomation()
+    aero_flow.run()
+
